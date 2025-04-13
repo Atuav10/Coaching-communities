@@ -2,7 +2,7 @@ library(dplyr)
 library(tidyr)
 library(igraph)
 library(nflfastR)
-df <- read.csv("code.csv", stringsAsFactors = FALSE)
+df <- read.csv("data.csv", stringsAsFactors = FALSE)
 table(df$position)
 #Create a function that turns our data into connections between coaches based on team and year
 create_coach_connections <- function(data) {
