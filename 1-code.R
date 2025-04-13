@@ -4,6 +4,8 @@ library(igraph)
 library(nflfastR)
 df <- read.csv("data.csv", stringsAsFactors = FALSE)
 table(df$position)
+### Data Wrangling---
+
 #Create a function that turns our data into connections between coaches based on team and year
 create_coach_connections <- function(data) {
   connections <- data %>%
@@ -51,6 +53,7 @@ coach_connections$strength <- coach_connections$rating_1 + coach_connections$rat
 
 write.csv(coach_connections, "coaches_connections.csv", row.names = FALSE)
 
+### Finalizing the network data---
 
 #Create pairs of coaches that represent the connections and aggregate it to show the strength of the connection
 coach_connections$pair <- apply(coach_connections[, c('Coach_1', 'Coach_2')], 1, function(x) paste(sort(x), collapse = '-'))
@@ -68,12 +71,14 @@ final_coach_connections <- coach_connections_aggregated %>%
   filter(row_number() == which.max(total_strength)) %>%
   ungroup()
 
+#Two coaches need to be renamed
 final_coach_connections <- final_coach_connections %>%
   mutate(pair = gsub("Andrew Hayes-Stoker", "Andrew Hayes Stoker", pair),
          pair = gsub("Stephen Bravo-Brown", "Stephen Bravo Brown", pair))
 df_final <- final_coach_connections %>%
   separate(pair, into = c("Coach1", "Coach2"), sep = "-") 
 
+### Coaching communities---
 g_df <- graph.data.frame(df_final, directed = F)
 
 threshold <- 50
@@ -81,8 +86,8 @@ threshold <- 50
 g_backbone <- delete_edges(g_df, E(g_df)[total_strength < threshold])
 g_backbone <- delete_vertices(g_backbone, V(g_backbone)[degree(g_backbone) == 0])
 
-node_color <- rgb(0, 0, 1, alpha = 0.2)  #Blue with 50% opacity
-edge_color <- rgb(0.5, 0.5, 0.5, alpha = 0.5)  #Gray edges with 50% opacity
+node_color <- rgb(0, 0, 1, alpha = 0.2)  
+edge_color <- rgb(0.5, 0.5, 0.5, alpha = 0.5)  
 
 plot(g_backbone, 
      vertex.size = 8,
@@ -114,12 +119,11 @@ carroll_tree <- filter(coach_df, Community == 10)
 garrett_gruden_tree <- filter(coach_df, Community == 13)
 lewis_zimmer_tree <- filter(coach_df, Community == 15)
 arians_tree <- filter(coach_df, Community == 16) #Joins Mike Tomlin
-
+                                
+#Shanahan tree
 shanahan_nodes <- shanahan_tree$Coach
 g_shanahan <- induced_subgraph(g_backbone, vids = shanahan_nodes)
-
-#Define default and enlarged font sizes
-
+                                
 #Names to bold
 bold_names <- c("Kyle Shanahan", "Sean McVay", "Mike McDaniel", "Raheem Morris", "Matt LaFleur", "Dan Quinn", "DeMeco Ryans")
 
@@ -148,12 +152,10 @@ plot(g_shanahan,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nKyle Shanahan\nSean McVay\nMatt LaFleur\nMike McDaniel\nDeMeco Ryans\nDan Quinn\nRaheem Morris", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Payton tree
 payton_nodes <- payton_tree$Coach
 g_payton <- induced_subgraph(g_backbone, vids = payton_nodes)
-
-#Define default and enlarged font sizes
-
+                                
 #Names to bold
 bold_names <- c("Sean Payton", "Brian Callahan", "Dan Campbell", "Ben Johnson", "Aaron Glenn", "Zac Taylor")
 
@@ -183,12 +185,11 @@ plot(g_payton,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nSean Payton\nZac Taylor\nDan Campbell\nBrian Callahan\nBen Johnson\nAaron Glenn", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Reid tree
 reid_nodes <- reid_tree$Coach
 g_reid <- induced_subgraph(g_backbone, vids = reid_nodes)
 
-#Define default and enlarged font sizes
-
+                                
 #Names to bold
 bold_names <- c("Andy Reid", "Nick Sirianni", "Jonathan Gannon")
 
@@ -218,11 +219,9 @@ plot(g_reid,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nAndy Reid\nNick Sirianni\nJonathan Gannon", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Belichick tree
 belichick_nodes <- belichick_tree$Coach
 g_belichick <- induced_subgraph(g_backbone, vids = belichick_nodes)
-
-#Define default and enlarged font sizes
 
 #Names to bold
 bold_names <- c("Mike Vrabel", "Bill Belichick")
@@ -251,11 +250,9 @@ plot(g_belichick,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nMike Vrabel", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Rivera tree
 rivera_nodes <- rivera_tree$Coach
 g_rivera <- induced_subgraph(g_backbone, vids = rivera_nodes)
-
-#Define default and enlarged font sizes
 
 #Names to bold
 bold_names <- c("Ron Rivera", "Sean McDermott", "Brian Daboll")
@@ -286,11 +283,9 @@ plot(g_rivera,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nSean McDermott\nBrian Daboll", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Carroll tree
 carroll_nodes <- carroll_tree$Coach
 g_carroll <- induced_subgraph(g_backbone, vids = carroll_nodes)
-
-#Define default and enlarged font sizes
 
 #Names to bold
 bold_names <- c("Pete Carroll", "Dave Canales", "Brian Schottenheimer")
@@ -321,7 +316,7 @@ plot(g_carroll,
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nPete Carroll\nDave Canales\nBrian Schottenheimer", 
      family = "Helvetica", cex = 1, col = "black")
 
-
+#Lewis_zimmer tree
 lewis_zimmer_nodes <- lewis_zimmer_tree$Coach
 g_lewis_zimmer <- induced_subgraph(g_backbone, vids = lewis_zimmer_nodes)
 
@@ -353,7 +348,8 @@ plot(g_lewis_zimmer,
 #Add caption to bottom-left
 text(x = 0.9, y = -0.9, labels = "Current Head Coaches:\nKevin Stefanski\nKevin O'Connell", 
      family = "Helvetica", cex = 1, col = "black")
-
+                                
+###Shanahan score---
 g_df <- as.undirected(g_df, mode = "collapse")
 
 E(g_df)$weight <- 1/E(g_df)$years + 1/E(g_df)$total_strength
@@ -391,8 +387,10 @@ head(shanahan_df)
 
 test <- left_join(shanahan_df, head_coaches, by = c("Coach" = "Coach"))
 test <- na.omit(test)
-
-#Record data ----
+                           
+###Coaching closeness vs. team success---
+                           
+#Record data 
 pbp <- load_pbp(2010:2024)
 standings_data <- nflfastR::calculate_standings(pbp)
 standings_data$made_playoffs <- ifelse(is.na(standings_data$seed), 0, 1)
